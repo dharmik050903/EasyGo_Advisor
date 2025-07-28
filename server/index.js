@@ -14,7 +14,23 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = "EasyGoAdvisor@1974"; // Use the same key as frontend
 
-app.use(cors());
+// Set up CORS to only allow requests from the frontend origin
+const allowedOrigins = [
+  'http://localhost:3000', // React dev server
+  // Add your production domain here, e.g. 'https://yourdomain.com'
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // Connect to MongoDB
