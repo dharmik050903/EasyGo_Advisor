@@ -12,11 +12,17 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const SECRET_KEY = "EasyGoAdvisor@1974"; // Use the same key as frontend
+const SECRET_KEY = process.env.SECRET_KEY // Use the same key as frontend
 
+if(!SECRET_KEY) {
+  console.error("SECRET_KEY is not defined in environment variables.");
+  // process.exit(1);
+}
 // Set up CORS to only allow requests from the frontend origin
 const allowedOrigins = [
-  'http://localhost:3000', // React dev server
+  'http://localhost:3000', 
+  'https://easy-go-advisor.vercel.app'
+  // React dev server
   // Add your production domain here, e.g. 'https://yourdomain.com'
 ];
 app.use(cors({

@@ -563,7 +563,7 @@ const Footer = () => {
               <h3 className="text-xl font-bold">Easy Go Overseas</h3> */}
             </div>
             <p className="text-gray-300 mb-4">
-              Your trusted partner for overseas education, immigration, and career opportunities.
+              Your trusted partner for overseas, immigration, and career opportunities.
             </p>
           </div>
           
@@ -577,7 +577,7 @@ const Footer = () => {
               </div>
               <div className="flex items-center space-x-3">
                 <Mail className="w-5 h-5 text-green-500" />
-                <span className="text-gray-300">info@easygoverseas.com</span>
+                <span className="text-gray-300">egoc99@gmail.com</span>
               </div>
             </div>
           </div>
@@ -588,7 +588,7 @@ const Footer = () => {
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-red-500 mt-1" />
               <div className="text-gray-300">
-                <p>421 Narayan Empire,</p>
+                <p>121 Narayan Empire,</p>
                 <p>Anand-Vidhyanagar Road,</p>
                 <p>Anand, Gujarat 388120,</p>
                 <p>India</p>
