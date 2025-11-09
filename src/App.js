@@ -220,38 +220,16 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
   const [count, setCount] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const timerRef = React.useRef(null);
+  const cardRef = React.useRef(null);
+  const observerRef = React.useRef(null);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !hasAnimated) {
-            setHasAnimated(true);
-            setTimeout(() => {
-              animateCounter();
-            }, delay);
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    const element = document.getElementById(`stat-${value}-${suffix}`);
-    if (element) {
-      observer.observe(element);
+  const animateCounter = React.useCallback(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
 
-    return () => {
-      if (element) {
-        observer.unobserve(element);
-      }
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [delay, hasAnimated, value, suffix]);
-
-  const animateCounter = () => {
     const duration = 2000; // 2 seconds
     const steps = 60;
     const increment = value / steps;
@@ -271,7 +249,63 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
         setCount(value);
       }
     }, stepDuration);
-  };
+  }, [value]);
+
+  useEffect(() => {
+    // Fallback: If IntersectionObserver is not supported or fails, animate after a delay
+    const fallbackTimeout = setTimeout(() => {
+      if (!hasAnimated && cardRef.current) {
+        setHasAnimated(true);
+        setTimeout(() => {
+          animateCounter();
+        }, delay);
+      }
+    }, 1000);
+
+    // Try to use IntersectionObserver
+    // Use a small delay to ensure DOM is ready, especially on iOS
+    const setupObserver = setTimeout(() => {
+      if (typeof IntersectionObserver !== 'undefined' && cardRef.current) {
+        observerRef.current = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting && !hasAnimated) {
+                clearTimeout(fallbackTimeout);
+                setHasAnimated(true);
+                setTimeout(() => {
+                  animateCounter();
+                }, delay);
+              }
+            });
+          },
+          { 
+            threshold: 0.1,
+            rootMargin: '50px' // Start animation slightly before element is fully visible
+          }
+        );
+
+        // Use requestAnimationFrame to ensure element is in DOM
+        requestAnimationFrame(() => {
+          if (cardRef.current && observerRef.current) {
+            observerRef.current.observe(cardRef.current);
+          }
+        });
+      }
+    }, 100); // Small delay to ensure DOM is ready
+
+    return () => {
+      clearTimeout(fallbackTimeout);
+      clearTimeout(setupObserver);
+      if (observerRef.current && cardRef.current) {
+        observerRef.current.unobserve(cardRef.current);
+        observerRef.current.disconnect();
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [delay, hasAnimated, value, suffix, animateCounter]);
 
   // Calculate progress percentage (for percentage values, use count directly; for others, calculate percentage)
   const getProgress = () => {
@@ -289,6 +323,7 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
 
   return (
     <div
+      ref={cardRef}
       id={`stat-${value}-${suffix}`}
       className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
     >
