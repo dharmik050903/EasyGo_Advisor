@@ -215,6 +215,7 @@ const Header = ({ activeSection, setActiveSection }) => {
 
 /**
  * Statistics Card Component with Animated Counter
+ * iOS-optimized with multiple fallback strategies
  */
 const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
   const [count, setCount] = useState(0);
@@ -222,90 +223,195 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
   const timerRef = React.useRef(null);
   const cardRef = React.useRef(null);
   const observerRef = React.useRef(null);
+  const hasStartedRef = React.useRef(false);
+  const animationFrameRef = React.useRef(null);
+
+  // Detect iOS
+  const isIOS = React.useMemo(() => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }, []);
 
   const animateCounter = React.useCallback(() => {
+    // Prevent multiple starts
+    if (hasStartedRef.current) {
+      return;
+    }
+    hasStartedRef.current = true;
+
     // Clear any existing timer
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
 
-    const duration = 2000; // 2 seconds
-    const steps = 60;
-    const increment = value / steps;
-    const stepDuration = duration / steps;
+    // For iOS, use a more reliable approach
+    if (isIOS) {
+      const duration = 2000;
+      const steps = 60;
+      const increment = value / steps;
+      let currentStep = 0;
 
-    let currentStep = 0;
-    timerRef.current = setInterval(() => {
-      currentStep++;
-      const newCount = Math.min(Math.ceil(increment * currentStep), value);
-      setCount(newCount);
+      const animate = () => {
+        currentStep++;
+        const newCount = Math.min(Math.ceil(increment * currentStep), value);
+        setCount(newCount);
 
-      if (currentStep >= steps) {
+        if (currentStep < steps) {
+          animationFrameRef.current = requestAnimationFrame(animate);
+        } else {
+          setCount(value);
+          if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+          }
+        }
+      };
+
+      // Start with a small delay for iOS
+      setTimeout(() => {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      }, 50);
+    } else {
+      // Standard approach for other browsers
+      const duration = 2000;
+      const steps = 60;
+      const increment = value / steps;
+      const stepDuration = duration / steps;
+
+      let currentStep = 0;
+      timerRef.current = setInterval(() => {
+        currentStep++;
+        const newCount = Math.min(Math.ceil(increment * currentStep), value);
+        setCount(newCount);
+
+        if (currentStep >= steps) {
+          if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
+          setCount(value);
+        }
+      }, stepDuration);
+    }
+  }, [value, isIOS]);
+
+  useEffect(() => {
+    // For iOS, use simpler approach - always animate after mount
+    if (isIOS) {
+      const startAnimation = () => {
+        if (!hasAnimated && !hasStartedRef.current) {
+          setHasAnimated(true);
+          setTimeout(() => {
+            animateCounter();
+          }, delay);
+        }
+      };
+
+      // Multiple fallbacks for iOS
+      const timeout1 = setTimeout(startAnimation, 300);
+      const timeout2 = setTimeout(startAnimation, 800);
+      const timeout3 = setTimeout(startAnimation, 1500);
+
+      return () => {
+        clearTimeout(timeout1);
+        clearTimeout(timeout2);
+        clearTimeout(timeout3);
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
         if (timerRef.current) {
           clearInterval(timerRef.current);
           timerRef.current = null;
         }
-        setCount(value);
-      }
-    }, stepDuration);
-  }, [value]);
+      };
+    }
 
-  useEffect(() => {
-    // Fallback: If IntersectionObserver is not supported or fails, animate after a delay
-    const fallbackTimeout = setTimeout(() => {
-      if (!hasAnimated && cardRef.current) {
+    // For non-iOS, use IntersectionObserver with fallback
+    let fallbackTimeout1 = null;
+    let fallbackTimeout2 = null;
+    let setupObserver = null;
+
+    // Primary fallback
+    fallbackTimeout1 = setTimeout(() => {
+      if (!hasAnimated && cardRef.current && !hasStartedRef.current) {
         setHasAnimated(true);
         setTimeout(() => {
           animateCounter();
         }, delay);
       }
-    }, 1000);
+    }, 500);
 
-    // Try to use IntersectionObserver
-    // Use a small delay to ensure DOM is ready, especially on iOS
-    const setupObserver = setTimeout(() => {
-      if (typeof IntersectionObserver !== 'undefined' && cardRef.current) {
-        observerRef.current = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting && !hasAnimated) {
-                clearTimeout(fallbackTimeout);
-                setHasAnimated(true);
-                setTimeout(() => {
-                  animateCounter();
-                }, delay);
-              }
-            });
-          },
-          { 
-            threshold: 0.1,
-            rootMargin: '50px' // Start animation slightly before element is fully visible
-          }
-        );
-
-        // Use requestAnimationFrame to ensure element is in DOM
-        requestAnimationFrame(() => {
-          if (cardRef.current && observerRef.current) {
-            observerRef.current.observe(cardRef.current);
-          }
-        });
+    // Secondary fallback
+    fallbackTimeout2 = setTimeout(() => {
+      if (!hasAnimated && cardRef.current && !hasStartedRef.current) {
+        setHasAnimated(true);
+        animateCounter();
       }
-    }, 100); // Small delay to ensure DOM is ready
+    }, 2000);
+
+    // Try IntersectionObserver
+    setupObserver = setTimeout(() => {
+      if (typeof IntersectionObserver !== 'undefined' && cardRef.current) {
+        try {
+          observerRef.current = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting && !hasAnimated && !hasStartedRef.current) {
+                  if (fallbackTimeout1) clearTimeout(fallbackTimeout1);
+                  if (fallbackTimeout2) clearTimeout(fallbackTimeout2);
+                  setHasAnimated(true);
+                  setTimeout(() => {
+                    animateCounter();
+                  }, delay);
+                }
+              });
+            },
+            { 
+              threshold: 0.01,
+              rootMargin: '100px'
+            }
+          );
+
+          const observeElement = () => {
+            if (cardRef.current && observerRef.current) {
+              try {
+                observerRef.current.observe(cardRef.current);
+              } catch (e) {
+                // Ignore errors
+              }
+            }
+          };
+
+          requestAnimationFrame(observeElement);
+          setTimeout(observeElement, 50);
+          setTimeout(observeElement, 200);
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    }, 100);
 
     return () => {
-      clearTimeout(fallbackTimeout);
-      clearTimeout(setupObserver);
+      if (fallbackTimeout1) clearTimeout(fallbackTimeout1);
+      if (fallbackTimeout2) clearTimeout(fallbackTimeout2);
+      if (setupObserver) clearTimeout(setupObserver);
       if (observerRef.current && cardRef.current) {
-        observerRef.current.unobserve(cardRef.current);
-        observerRef.current.disconnect();
+        try {
+          observerRef.current.unobserve(cardRef.current);
+          observerRef.current.disconnect();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
       }
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
     };
-  }, [delay, hasAnimated, value, suffix, animateCounter]);
+  }, [delay, hasAnimated, value, suffix, animateCounter, isIOS]);
 
   // Calculate progress percentage (for percentage values, use count directly; for others, calculate percentage)
   const getProgress = () => {
