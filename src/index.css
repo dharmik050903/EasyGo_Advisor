@@ -271,6 +271,169 @@ html {
 }
 
 /* =============================================================================
+   MODERN BACKGROUND PATTERNS & DESIGNS
+   ============================================================================= */
+
+/* Subtle mesh gradient background */
+.bg-mesh-gradient {
+  background: 
+    radial-gradient(at 0% 0%, rgba(220, 38, 38, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(34, 197, 94, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.08) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(34, 197, 94, 0.08) 0px, transparent 50%);
+  background-color: #fefefe;
+}
+
+/* Modern gradient with depth */
+.bg-modern-gradient {
+  background: linear-gradient(135deg, #fef2f2 0%, #f0fdf4 50%, #fef2f2 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-modern-gradient::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, transparent 70%);
+  animation: rotate 20s linear infinite;
+}
+
+.bg-modern-gradient::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.1) 0%, transparent 70%);
+  animation: rotate 25s linear infinite reverse;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Geometric pattern background */
+.bg-geometric {
+  background: linear-gradient(135deg, #fef2f2 0%, #f0fdf4 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-geometric::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(30deg, rgba(220, 38, 38, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(220, 38, 38, 0.03) 87.5%, rgba(220, 38, 38, 0.03)),
+    linear-gradient(150deg, rgba(220, 38, 38, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(220, 38, 38, 0.03) 87.5%, rgba(220, 38, 38, 0.03)),
+    linear-gradient(30deg, rgba(34, 197, 94, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(34, 197, 94, 0.03) 87.5%, rgba(34, 197, 94, 0.03)),
+    linear-gradient(150deg, rgba(34, 197, 94, 0.03) 12%, transparent 12.5%, transparent 87%, rgba(34, 197, 94, 0.03) 87.5%, rgba(34, 197, 94, 0.03));
+  background-size: 80px 140px;
+  background-position: 0 0, 0 0, 40px 70px, 40px 70px;
+}
+
+/* Elegant dots pattern */
+.bg-dots {
+  background: linear-gradient(135deg, #fef2f2 0%, #f0fdf4 100%);
+  position: relative;
+}
+
+.bg-dots::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle, rgba(220, 38, 38, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  opacity: 0.4;
+}
+
+/* Wave pattern background */
+.bg-waves {
+  background: linear-gradient(135deg, #fef2f2 0%, #f0fdf4 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-waves::before,
+.bg-waves::after {
+  content: '';
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  opacity: 0.1;
+}
+
+.bg-waves::before {
+  top: -50%;
+  left: -50%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(220, 38, 38, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(34, 197, 94, 0.3) 0%, transparent 50%);
+  animation: wave 15s ease-in-out infinite;
+}
+
+.bg-waves::after {
+  bottom: -50%;
+  right: -50%;
+  background: 
+    radial-gradient(circle at 80% 20%, rgba(34, 197, 94, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(220, 38, 38, 0.3) 0%, transparent 50%);
+  animation: wave 20s ease-in-out infinite reverse;
+}
+
+@keyframes wave {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-10%, -10%) scale(1.1);
+  }
+}
+
+/* Professional subtle background */
+.bg-professional {
+  background: 
+    linear-gradient(135deg, #ffffff 0%, #fef2f2 25%, #f0fdf4 50%, #fef2f2 75%, #ffffff 100%);
+  background-size: 400% 400%;
+  animation: professionalGradient 15s ease infinite;
+}
+
+@keyframes professionalGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Glass morphism effect */
+.bg-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* =============================================================================
    RESPONSIVE ANIMATIONS & ACCESSIBILITY
    ============================================================================= */
 
@@ -549,4 +712,77 @@ select option:hover {
 select option:checked {
   background-color: #dc2626;
   color: white;
+}
+
+/* Blob animation for decorative elements */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s ease-in-out infinite;
+}
+
+/* Enhanced backdrop blur support */
+@supports (backdrop-filter: blur(10px)) {
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* Hero section specific animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Gradient text animation enhancement */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Smooth parallax transitions */
+@media (prefers-reduced-motion: no-preference) {
+  .parallax-bg {
+    transition: transform 0.1s ease-out;
+  }
 }

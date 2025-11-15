@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, User, Calendar, MessageCircle, Globe, GraduationCap, FileText, Shield, Target, CheckCircle, HeartHandshake, TrendingUp, Calendar as CalendarIcon, CheckCircle2, BarChart3 } from 'lucide-react';
+import { Mail, Phone, MapPin, User, Calendar, MessageCircle, Globe, GraduationCap, FileText, Shield, Target, CheckCircle, HeartHandshake, TrendingUp, Calendar as CalendarIcon, CheckCircle2, BarChart3, ClipboardCheck, FileCheck, UserCheck, Building2, Home, Briefcase, BriefcaseBusiness, Users, Award, BookOpen, Lightbulb, Ticket, Globe2, BadgeCheck, Plane, Users2, Search, FileSearch, CalendarCheck, LayoutGrid } from 'lucide-react';
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CryptoJS from "crypto-js";
@@ -122,6 +122,31 @@ const sanitizeInput = (value) => {
  */
 const Header = ({ activeSection, setActiveSection }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolled(scrollPosition > 50);
+    };
+
+    // Check initial scroll position
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Reset scroll state when activeSection changes to ensure header stays transparent
+  useEffect(() => {
+    setIsScrolled(false);
+    // Check scroll position after a brief delay to allow for any scroll animations
+    const timer = setTimeout(() => {
+      const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+      setIsScrolled(scrollPosition > 50);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [activeSection]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -137,10 +162,22 @@ const Header = ({ activeSection, setActiveSection }) => {
     setIsMobileMenuOpen(false); // Close mobile menu when logo is clicked
   };
 
+  // Check if we're on sections that need transparent header
+  const needsTransparentHeader = activeSection === 'home' || activeSection === 'about-us' || activeSection === 'our-services';
+  
+  // Determine text color based on scroll and background
+  // When scrolled down or on contact page, use black text
+  // When at top of pages with dark backgrounds, use white text
+  const useLightText = needsTransparentHeader && !isScrolled;
+
   return (
-    <header className="bg-white shadow-lg sticky top-0 z-50 animate-slide-down">
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+      needsTransparentHeader && !isScrolled
+        ? 'bg-white/10 backdrop-blur-md border-b border-white/20 shadow-lg' 
+        : 'bg-white shadow-lg'
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="w-[95%] mx-auto flex justify-between items-center py-4">
+        <div className="w-full flex justify-between items-center py-4">
           {/* Logo */}
           <button
             onClick={handleLogoClick}
@@ -150,38 +187,50 @@ const Header = ({ activeSection, setActiveSection }) => {
             <img
               src="/Logo.jpg"
               alt="Easy Go Overseas Logo"
-              className="h-12 w-auto object-contain transition-all-smooth"
-              style={{ maxHeight: '48px' }}
+              className="h-8 sm:h-10 md:h-12 w-auto object-contain transition-all-smooth"
+              style={{ maxHeight: '48px', objectFit: 'contain', filter: useLightText ? 'brightness(1.2) drop-shadow(0 2px 4px rgba(0,0,0,0.3))' : 'drop-shadow(0 1px 2px rgba(0,0,0,0.1))' }}
             />
           </button>
           
           {/* Desktop Navigation Menu */}
-          <nav className="hidden md:flex space-x-8">
-            {['Home', 'About Us', 'Our Services', 'Contact Us'].map((item) => (
-              <button
-                key={item}
-                onClick={() => setActiveSection(item.toLowerCase().replace(' ', '-'))}
-                className={`text-lg font-medium transition-all-smooth relative pb-1 ${
-                  activeSection === item.toLowerCase().replace(' ', '-')
-                    ? 'text-red-600'
-                    : 'text-gray-700 hover:text-red-600'
-                }`}
-              >
-                {item}
-                {activeSection === item.toLowerCase().replace(' ', '-') && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600"></span>
-                )}
-              </button>
-            ))}
+          <nav className="hidden md:flex space-x-4 lg:space-x-6 xl:space-x-8 items-center">
+            {['Home', 'About Us', 'Our Services', 'Contact Us'].map((item) => {
+              const isActive = activeSection === item.toLowerCase().replace(' ', '-');
+              return (
+                <button
+                  key={item}
+                  onClick={() => setActiveSection(item.toLowerCase().replace(' ', '-'))}
+                  className={`text-sm md:text-base lg:text-lg font-medium transition-all duration-200 relative px-2 md:px-3 py-1.5 md:py-2 rounded-md ${
+                    isActive
+                      ? useLightText 
+                        ? 'text-yellow-300 bg-white/20' 
+                        : 'text-red-600 bg-red-50'
+                      : useLightText 
+                        ? 'text-white hover:text-yellow-300 hover:bg-white/10' 
+                        : 'text-black hover:text-red-600 hover:bg-gray-50'
+                  } ${useLightText ? 'drop-shadow-lg' : ''}`}
+                >
+                  {item}
+                  {isActive && (
+                    <span className={`absolute bottom-1 left-1/2 transform -translate-x-1/2 w-3/4 h-0.5 rounded-full ${
+                      useLightText ? 'bg-yellow-300' : 'bg-red-600'
+                    }`}></span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
           
           {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button 
               onClick={toggleMobileMenu}
-              className="text-gray-700 hover:text-red-600 transition-colors duration-200"
+              className={`transition-colors duration-200 p-1 ${
+                useLightText ? 'text-white hover:text-yellow-300' : 'text-black hover:text-red-600'
+              }`}
+              aria-label="Toggle mobile menu"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -191,20 +240,38 @@ const Header = ({ activeSection, setActiveSection }) => {
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
           <div className="md:hidden animate-slide-down">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
-              {['Home', 'About Us', 'Our Services', 'Contact Us'].map((item) => (
-                <button
-                  key={item}
-                  onClick={() => handleNavClick(item.toLowerCase().replace(' ', '-'))}
-                  className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                    activeSection === item.toLowerCase().replace(' ', '-')
-                      ? 'text-red-600 bg-red-50'
-                      : 'text-gray-700 hover:text-red-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
+            <div className={`px-2 sm:px-3 pt-2 pb-3 space-y-1 rounded-b-lg ${
+              useLightText
+                ? 'bg-white/20 backdrop-blur-md border-t border-white/20' 
+                : 'bg-white border-t border-gray-200'
+            }`}>
+              {['Home', 'About Us', 'Our Services', 'Contact Us'].map((item) => {
+                const isActive = activeSection === item.toLowerCase().replace(' ', '-');
+                return (
+                  <button
+                    key={item}
+                    onClick={() => handleNavClick(item.toLowerCase().replace(' ', '-'))}
+                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-medium transition-all duration-200 ${
+                      isActive
+                        ? useLightText 
+                          ? 'text-yellow-300 bg-white/20 shadow-md' 
+                          : 'text-red-600 bg-red-50 shadow-md'
+                        : useLightText
+                          ? 'text-white hover:text-yellow-300 hover:bg-white/10'
+                          : 'text-black hover:text-red-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="flex items-center justify-between">
+                      {item}
+                      {isActive && (
+                        <span className={`w-2 h-2 rounded-full ${
+                          useLightText ? 'bg-yellow-300' : 'bg-red-600'
+                        }`}></span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -431,45 +498,46 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
     <div
       ref={cardRef}
       id={`stat-${value}-${suffix}`}
-      className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-100"
+      className="bg-white rounded-xl p-4 sm:p-5 md:p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border border-gray-100 w-full max-w-sm flex flex-col items-center justify-center mx-auto"
     >
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center justify-center w-full">
         {/* Circular Progress Ring */}
-        <div className="relative w-32 h-32 mb-4">
-          <svg className="transform -rotate-90 w-32 h-32">
+        <div className="relative w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 mb-3 sm:mb-4 flex items-center justify-center">
+          <svg className="transform -rotate-90 w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32">
             {/* Background circle */}
             <circle
-              cx="64"
-              cy="64"
-              r={radius}
+              cx="50%"
+              cy="50%"
+              r="40%"
               stroke="#e5e7eb"
-              strokeWidth="8"
+              strokeWidth="6"
               fill="none"
+              className="sm:stroke-[8]"
             />
             {/* Progress circle */}
             <circle
-              cx="64"
-              cy="64"
-              r={radius}
-              stroke="#dc2626"
-              strokeWidth="8"
+              cx="50%"
+              cy="50%"
+              r="40%"
+              stroke="#3b82f6"
+              strokeWidth="6"
               fill="none"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={offset}
-              className="transition-all duration-300 ease-out"
+              className="transition-all duration-300 ease-out sm:stroke-[8]"
             />
           </svg>
           {/* Center content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="mb-2 flex justify-center">{icon}</div>
-            <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-green-600 bg-clip-text text-transparent">
+            <div className="mb-1 sm:mb-2 flex items-center justify-center">{icon}</div>
+            <div className="text-lg sm:text-xl md:text-2xl font-bold text-blue-700 text-center">
               {count}{suffix}
             </div>
           </div>
         </div>
         {/* Label */}
-        <div className="text-sm text-gray-600 font-medium text-center">{label}</div>
+        <div className="text-xs sm:text-sm text-gray-600 font-medium text-center w-full">{label}</div>
       </div>
     </div>
   );
@@ -480,28 +548,34 @@ const StatCard = ({ value, suffix, label, icon, delay = 0 }) => {
  */
 const StatisticsSection = () => {
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section className="relative py-16 overflow-hidden">
+      {/* Subtle gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-50 via-white to-gray-50"></div>
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-100/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 justify-items-center">
           <StatCard
             value={20}
             suffix="+"
             label="Years of Experience"
-            icon={<CalendarIcon className="w-6 h-6 text-red-600" />}
+            icon={<img src="/suitcase.png" alt="Years of Experience" className="w-6 h-6" />}
             delay={0}
           />
           <StatCard
             value={500}
             suffix="+"
             label="Success Visa"
-            icon={<CheckCircle2 className="w-6 h-6 text-green-600" />}
+            icon={<img src="/succession.png" alt="Success Visa" className="w-7 h-7" />}
             delay={200}
           />
           <StatCard
             value={98}
             suffix="%"
             label="Visa Ratio"
-            icon={<BarChart3 className="w-6 h-6 text-red-600" />}
+            icon={<img src="/achievement.png" alt="Visa Ratio" className="w-6 h-6" />}
             delay={400}
           />
         </div>
@@ -512,61 +586,93 @@ const StatisticsSection = () => {
 
 /**
  * Hero Section Component - Main landing area with call-to-action
+ * Creative design with hero image background
  */
 const HeroSection = ({ setActiveSection }) => {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   return (
     <>
-      <section className="relative bg-gradient-to-r from-red-100 to-green-100 py-20 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-green-500 animate-gradient"></div>
-        </div>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/HeroSection-2.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Text Content */}
-            <div className={`text-center lg:text-left ${isVisible ? 'animate-slide-in-left' : 'opacity-0'}`}>
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-green-600 mb-4 sm:mb-6">
-                Your Gateway to 
-                <span className="text-red-600 animate-fade-in animation-delay-200"> Global</span>
-                <span className="text-green-600 animate-fade-in animation-delay-300"> Opportunities</span>
-              </h2>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-600 mb-6 sm:mb-8 px-2 sm:px-0 animate-fade-in animation-delay-400">
-                Expert guidance for Work Visa,Permanent Residence and Visitor Visa. 
-                Make your overseas dreams a reality with Easy Go Overseas.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start animate-slide-up animation-delay-500">
-                <button
-                  onClick={() => setActiveSection('contact-us')}
-                  className="bg-red-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-all-smooth hover-scale shadow-lg hover:shadow-xl active:scale-95"
-                >
-                  Book Consultation
-                </button>
-                <button
-                  onClick={() => setActiveSection('our-services')}
-                  className="border-2 border-green-600 text-green-600 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-green-600 hover:text-white transition-all-smooth hover-scale shadow-lg hover:shadow-xl active:scale-95"
-                >
-                  Our Services
-                </button>
-              </div>
+        {/* Subtle color accent overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        
+        {/* Top gradient for better header visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+        
+        {/* Bottom gradient for content separation */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60"></div>
+      </div>
+
+      <section className="relative min-h-screen flex items-center overflow-hidden z-10">
+
+        {/* Content Container - Premium but natural layout */}
+        <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-16 sm:py-20 md:py-24 lg:py-32 w-full">
+          {/* Main Heading - Clean and premium */}
+          <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-5 md:mb-6 leading-tight text-white drop-shadow-lg">
+            Your Gateway to Global Opportunities
+          </h1>
+
+          {/* Subtitle - Natural and readable */}
+          <p className="text-base sm:text-lg md:text-xl lg:text-xl text-gray-100 mb-6 sm:mb-7 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl">
+            Expert guidance for Work Visa, Permanent Residence and Visitor Visa. 
+            Make your overseas dreams a reality with Easy Go Overseas.
+          </p>
+
+          {/* CTA Buttons - Premium design */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8 sm:mb-10 md:mb-12">
+            <button
+              onClick={() => setActiveSection('contact-us')}
+              className="bg-red-600 text-white px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            >
+              <img src="/booking.png" alt="Booking" className="w-5 h-5 sm:w-6 sm:h-6" />
+              <span>Book Consultation</span>
+            </button>
+            <button
+              onClick={() => setActiveSection('our-services')}
+              className="bg-white/95 text-gray-900 px-6 sm:px-8 py-3 sm:py-3.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-white transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+            >
+              <img src="/support.png" alt="Support" className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Our Services</span>
+            </button>
+          </div>
+
+          {/* Trust Indicators - Clean and professional */}
+          <div className="flex flex-wrap gap-4 sm:gap-6 md:gap-8 text-gray-200">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <span className="text-sm sm:text-base">98% Success Rate</span>
             </div>
-            
-            {/* Image Placeholder */}
-            <div className={`flex justify-center lg:justify-end ${isVisible ? 'animate-slide-in-right' : 'opacity-0'}`}>
-              <div className="w-full max-w-md h-80 flex items-center justify-center">
-                <img
-                  src="/Plane_Takeoff.jpg"
-                  alt="Plane Takeoff"
-                  className="w-full h-full object-cover rounded-lg shadow-2xl hover-scale transition-all-smooth"
-                  style={{ background: 'linear-gradient(to bottom right, #fecaca, #bbf7d0)' }}
-                />
-              </div>
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <span className="text-sm sm:text-base">20+ Years Experience</span>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400 flex-shrink-0" />
+              <span className="text-sm sm:text-base">500+ Success Stories</span>
             </div>
           </div>
         </div>
@@ -583,72 +689,99 @@ const HeroSection = ({ setActiveSection }) => {
  */
 const VisaProcessingDetails = ({ onBack, setActiveSection }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const features = [
     {
-      icon: <FileText className="w-8 h-8 text-green-600" />,
+      icon: <FileSearch className="w-8 h-8 text-green-400" />,
       title: "Application Assistance",
       description: "Complete guidance through the entire visa application process from start to finish."
     },
     {
-      icon: <Shield className="w-8 h-8 text-red-600" />,
+      icon: <FileCheck className="w-8 h-8 text-amber-400" />,
       title: "Documentation Support",
       description: "Help with gathering, organizing, and preparing all required documents."
     },
     {
-      icon: <User className="w-8 h-8 text-green-600" />,
+      icon: <UserCheck className="w-8 h-8 text-blue-400" />,
       title: "Interview Preparation",
       description: "Mock interviews and coaching to help you succeed in your visa interview."
     },
     {
-      icon: <CheckCircle2 className="w-8 h-8 text-red-600" />,
+      icon: <BadgeCheck className="w-8 h-8 text-purple-400" />,
       title: "Follow-up Support",
       description: "Ongoing assistance even after submission to ensure a smooth process."
     }
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-r from-red-100 to-green-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/Visa-Approved.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Overlay for better content visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      </div>
+      
+      <section className="relative py-12 sm:py-16 md:py-20 min-h-screen overflow-hidden z-10">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors"
+          className="mb-6 sm:mb-8 flex items-center gap-2 text-white hover:text-yellow-300 transition-colors drop-shadow-lg text-sm sm:text-base"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Services
+          <span>Back to Services</span>
         </button>
 
         {/* Header */}
-        <div className={`text-center mb-12 sm:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-green-600" />
+        <div className={`text-center mb-8 sm:mb-12 md:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+          <div className="flex justify-center mb-3 sm:mb-4 md:mb-6">
+            <img src="/visa.png" alt="Visa Processing" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 drop-shadow-lg" />
           </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Visa Processing</h1>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-2 sm:px-0">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0 drop-shadow-2xl">Visa Processing</h1>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 max-w-3xl mx-auto px-2 sm:px-0 drop-shadow-lg">
             Expert assistance with visa applications, documentation, and interview preparation.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 md:mb-12">
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
+              className={`bg-white/10 backdrop-blur-md p-4 sm:p-6 lg:p-8 rounded-xl border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 hover:bg-white/15 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
               style={{ animationDelay: `${0.2 + index * 0.1}s` }}
             >
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">{feature.icon}</div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <h3 className="text-xl font-bold text-white mb-2 drop-shadow-lg">{feature.title}</h3>
+                  <p className="text-white/95 drop-shadow-md">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -656,47 +789,47 @@ const VisaProcessingDetails = ({ onBack, setActiveSection }) => {
         </div>
 
         {/* Additional Information */}
-        <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">What We Offer</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-2xl p-4 sm:p-5 md:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 md:mb-6 drop-shadow-lg">What We Offer</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Our Process</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Our Process</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Initial consultation to understand your needs</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Document checklist and preparation guidance</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Application form filling assistance</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Interview preparation and mock sessions</span>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Why Choose Us</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Why Choose Us</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>20+ years of experience in visa processing</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>98% success rate in visa approvals</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Personalized attention to each case</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Support for multiple countries and visa types</span>
                 </li>
               </ul>
@@ -708,13 +841,14 @@ const VisaProcessingDetails = ({ onBack, setActiveSection }) => {
         <div className="text-center">
           <button
             onClick={() => setActiveSection && setActiveSection('contact-us')}
-            className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all-smooth hover-scale shadow-lg hover:shadow-xl"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all-smooth hover-scale shadow-2xl hover:shadow-blue-500/50"
           >
             Get Started Today
           </button>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 };
 
@@ -723,72 +857,99 @@ const VisaProcessingDetails = ({ onBack, setActiveSection }) => {
  */
 const ImmigrationServicesDetails = ({ onBack, setActiveSection }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const features = [
     {
-      icon: <Shield className="w-8 h-8 text-red-600" />,
+      icon: <Home className="w-8 h-8 text-blue-400" />,
       title: "Permanent Residency",
       description: "Complete guidance for PR applications including Express Entry, PNP, and family sponsorship programs."
     },
     {
-      icon: <Globe className="w-8 h-8 text-green-600" />,
+      icon: <Award className="w-8 h-8 text-amber-400" />,
       title: "Citizenship Applications",
       description: "Assistance with citizenship requirements, documentation, and the naturalization process."
     },
     {
-      icon: <FileText className="w-8 h-8 text-red-600" />,
+      icon: <FileCheck className="w-8 h-8 text-green-400" />,
       title: "Document Preparation",
       description: "Expert help with gathering and organizing all required immigration documents."
     },
     {
-      icon: <CheckCircle2 className="w-8 h-8 text-green-600" />,
+      icon: <Plane className="w-8 h-8 text-purple-400" />,
       title: "Application Review",
       description: "Thorough review of your application to ensure accuracy and completeness before submission."
     }
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-r from-red-100 to-green-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/Immigration--service.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Overlay for better content visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      </div>
+      
+      <section className="relative py-12 sm:py-16 md:py-20 min-h-screen overflow-hidden z-10">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors"
+          className="mb-6 sm:mb-8 flex items-center gap-2 text-white hover:text-yellow-300 transition-colors drop-shadow-lg text-sm sm:text-base"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Services
+          <span>Back to Services</span>
         </button>
 
         {/* Header */}
-        <div className={`text-center mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <Shield className="w-16 h-16 sm:w-20 sm:h-20 text-red-600" />
+        <div className={`text-center mb-8 sm:mb-12 md:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+          <div className="flex justify-center mb-3 sm:mb-4 md:mb-6">
+            <img src="/place.png" alt="Immigration Services" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 drop-shadow-lg" />
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Immigration Services</h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-2 sm:px-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0 drop-shadow-2xl">Immigration Services</h1>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 max-w-3xl mx-auto px-2 sm:px-0 drop-shadow-lg">
             Comprehensive support for permanent residency and citizenship applications.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 md:mb-12">
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
+              className={`bg-white/10 backdrop-blur-md p-4 sm:p-5 md:p-6 lg:p-8 rounded-xl border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 hover:bg-white/15 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
               style={{ animationDelay: `${0.2 + index * 0.1}s` }}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex-shrink-0">{feature.icon}</div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 drop-shadow-lg">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-white/95 drop-shadow-md">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -796,47 +957,47 @@ const ImmigrationServicesDetails = ({ onBack, setActiveSection }) => {
         </div>
 
         {/* Additional Information */}
-        <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">What We Offer</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-2xl p-4 sm:p-5 md:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 md:mb-6 drop-shadow-lg">What We Offer</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Our Process</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Our Process</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Initial eligibility assessment</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Program selection guidance</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Document preparation and review</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Application submission support</span>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Why Choose Us</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Why Choose Us</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Expert knowledge of immigration programs</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Personalized immigration strategy</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Ongoing support throughout the process</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>High success rate in applications</span>
                 </li>
               </ul>
@@ -848,13 +1009,14 @@ const ImmigrationServicesDetails = ({ onBack, setActiveSection }) => {
         <div className="text-center">
           <button
             onClick={() => setActiveSection && setActiveSection('contact-us')}
-            className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all-smooth hover-scale shadow-lg hover:shadow-xl"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all-smooth hover-scale shadow-2xl hover:shadow-blue-500/50"
           >
             Get Started Today
           </button>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 };
 
@@ -863,72 +1025,99 @@ const ImmigrationServicesDetails = ({ onBack, setActiveSection }) => {
  */
 const CareerCounselingDetails = ({ onBack, setActiveSection }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const features = [
     {
-      icon: <User className="w-8 h-8 text-green-600" />,
+      icon: <Search className="w-8 h-8 text-blue-400" />,
       title: "Career Assessment",
       description: "Comprehensive evaluation of your skills, interests, and career goals to identify the best opportunities."
     },
     {
-      icon: <Target className="w-8 h-8 text-red-600" />,
+      icon: <BarChart3 className="w-8 h-8 text-amber-400" />,
       title: "Job Market Analysis",
       description: "In-depth research on job markets, salary trends, and demand for your profession in different countries."
     },
     {
-      icon: <GraduationCap className="w-8 h-8 text-green-600" />,
+      icon: <GraduationCap className="w-8 h-8 text-green-400" />,
       title: "Skill Development",
       description: "Guidance on certifications, training, and education needed to enhance your career prospects abroad."
     },
     {
-      icon: <TrendingUp className="w-8 h-8 text-red-600" />,
+      icon: <Users className="w-8 h-8 text-purple-400" />,
       title: "Career Planning",
       description: "Strategic career roadmap tailored to help you achieve your professional goals internationally."
     }
   ];
 
   return (
-    <section className="py-20 bg-gradient-to-r from-red-100 to-green-100 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/Career-counselinng.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Overlay for better content visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      </div>
+      
+      <section className="relative py-12 sm:py-16 md:py-20 min-h-screen overflow-hidden z-10">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
           onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors"
+          className="mb-6 sm:mb-8 flex items-center gap-2 text-white hover:text-yellow-300 transition-colors drop-shadow-lg text-sm sm:text-base"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Services
+          <span>Back to Services</span>
         </button>
 
         {/* Header */}
-        <div className={`text-center mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <User className="w-16 h-16 sm:w-20 sm:h-20 text-green-600" />
+        <div className={`text-center mb-8 sm:mb-12 md:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+          <div className="flex justify-center mb-3 sm:mb-4 md:mb-6">
+            <img src="/career-choice.png" alt="Career Counseling" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 drop-shadow-lg" />
           </div>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Career Counseling</h1>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto px-2 sm:px-0">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0 drop-shadow-2xl">Career Counseling</h1>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 max-w-3xl mx-auto px-2 sm:px-0 drop-shadow-lg">
             Professional guidance to help you choose the right career path and opportunities abroad.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 md:mb-12">
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
+              className={`bg-white/10 backdrop-blur-md p-4 sm:p-5 md:p-6 lg:p-8 rounded-xl border border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 hover:bg-white/15 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
               style={{ animationDelay: `${0.2 + index * 0.1}s` }}
             >
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-3 sm:gap-4">
                 <div className="flex-shrink-0">{feature.icon}</div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 drop-shadow-lg">{feature.title}</h3>
+                  <p className="text-sm sm:text-base text-white/95 drop-shadow-md">{feature.description}</p>
                 </div>
               </div>
             </div>
@@ -936,47 +1125,47 @@ const CareerCounselingDetails = ({ onBack, setActiveSection }) => {
         </div>
 
         {/* Additional Information */}
-        <div className={`bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6">What We Offer</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className={`bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-2xl p-4 sm:p-5 md:p-6 lg:p-8 mb-6 sm:mb-8 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4 md:mb-6 drop-shadow-lg">What We Offer</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Our Process</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Our Process</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Initial career consultation</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Skills and experience evaluation</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Market research and opportunities</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
                   <span>Personalized career action plan</span>
                 </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">Why Choose Us</h3>
-              <ul className="space-y-2 text-gray-600">
+              <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 drop-shadow-md">Why Choose Us</h3>
+              <ul className="space-y-2 text-white/95">
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Expert career counselors with international experience</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Comprehensive market insights</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Tailored career strategies</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
                   <span>Ongoing support and mentorship</span>
                 </li>
               </ul>
@@ -988,13 +1177,14 @@ const CareerCounselingDetails = ({ onBack, setActiveSection }) => {
         <div className="text-center">
           <button
             onClick={() => setActiveSection && setActiveSection('contact-us')}
-            className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all-smooth hover-scale shadow-lg hover:shadow-xl"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all-smooth hover-scale shadow-2xl hover:shadow-blue-500/50"
           >
             Get Started Today
           </button>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 };
 
@@ -1005,14 +1195,26 @@ const ServicesSection = ({ setActiveSection }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [activeService, setActiveService] = useState(null);
   const [flippedCard, setFlippedCard] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const handleCardClick = (serviceId) => {
     // Start flip animation
     setFlippedCard(serviceId);
+    
+    // Scroll to top when opening service detail to keep header transparent
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     
     // Show details page after flip completes
     setTimeout(() => {
@@ -1028,28 +1230,28 @@ const ServicesSection = ({ setActiveSection }) => {
 
   const services = [
     {
-      icon: <FileText className="w-12 h-12 text-green-600" />,
+      icon: <img src="/visa.png" alt="Visa Processing" className="w-12 h-12" />,
       title: "Visa Processing",
       description: "Expert assistance with visa applications, documentation, and interview preparation.",
       onClick: () => handleCardClick('visa'),
       id: 'visa',
-      backIcon: <FileText className="w-16 h-16 mb-4 text-white" />
+      backIcon: <img src="/visa.png" alt="Visa Processing" className="w-16 h-16 mb-4" />
     },
     {
-      icon: <Shield className="w-12 h-12 text-red-600" />,
+      icon: <img src="/place.png" alt="Immigration Services" className="w-12 h-12" />,
       title: "Immigration Services",
       description: "Comprehensive support for permanent residency and citizenship applications.",
       onClick: () => handleCardClick('immigration'),
       id: 'immigration',
-      backIcon: <Shield className="w-16 h-16 mb-4 text-white" />
+      backIcon: <img src="/place.png" alt="Immigration Services" className="w-16 h-16 mb-4" />
     },
     {
-      icon: <User className="w-12 h-12 text-green-600" />,
+      icon: <img src="/career-choice.png" alt="Career Counseling" className="w-12 h-12" />,
       title: "Career Counseling",
       description: "Professional guidance to help you choose the right career path and opportunities abroad.",
       onClick: () => handleCardClick('career'),
       id: 'career',
-      backIcon: <User className="w-16 h-16 mb-4 text-white" />
+      backIcon: <img src="/career-choice.png" alt="Career Counseling" className="w-16 h-16 mb-4" />
     }
   ];
 
@@ -1066,7 +1268,30 @@ const ServicesSection = ({ setActiveSection }) => {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-r from-red-100 to-green-100 relative">
+    <>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/visa-application-form-laptop.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Overlay for better content visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      </div>
+      
+    <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden z-10">
+
+      {/* Floating Decorative Elements */}
+      <div className="absolute top-10 sm:top-20 right-10 sm:right-20 w-48 sm:w-72 h-48 sm:h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-3xl animate-blob z-10"></div>
+      <div className="absolute bottom-10 sm:bottom-20 left-10 sm:left-20 w-64 sm:w-96 h-64 sm:h-96 bg-purple-500/10 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000 z-10"></div>
+
       <style>{`
         .flip-card {
           perspective: 1000px;
@@ -1124,13 +1349,13 @@ const ServicesSection = ({ setActiveSection }) => {
           }
         }
       `}</style>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`text-center mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Our Services</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 px-2 sm:px-0">Comprehensive solutions for your overseas journey</p>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`text-center mb-10 sm:mb-12 md:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+          <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0 drop-shadow-lg">Our Services</h2>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/95 px-2 sm:px-0 drop-shadow-md">Comprehensive solutions for your overseas journey</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 max-w-5xl mx-auto">
           {services.map((service, index) => {
             const isFlipped = flippedCard === service.id;
             
@@ -1143,20 +1368,20 @@ const ServicesSection = ({ setActiveSection }) => {
               >
                 <div className="flip-card-inner" style={{ minHeight: '280px' }}>
                   {/* Front of Card */}
-                  <div className="flip-card-front text-center p-4 sm:p-6 rounded-lg border border-gray-200 hover:shadow-xl transition-all-smooth hover-scale bg-white touch-manipulation">
+                  <div className="flip-card-front text-center p-4 sm:p-5 md:p-6 rounded-lg border border-white/30 hover:shadow-2xl transition-all-smooth hover-scale bg-white/95 backdrop-blur-sm touch-manipulation">
                     <div className="flex justify-center mb-3 sm:mb-4 transform transition-transform duration-300 hover:scale-110">
                       {service.icon}
                     </div>
-                    <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">{service.title}</h3>
-                    <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-0">{service.description}</p>
-                    <p className="text-xs sm:text-sm text-red-600 mt-3 sm:mt-4 font-medium">Click to learn more →</p>
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 mb-2 sm:mb-3">{service.title}</h3>
+                    <p className="text-xs sm:text-sm md:text-base text-gray-600 mb-2 sm:mb-0">{service.description}</p>
+                    <p className="text-xs sm:text-sm text-red-600 mt-2 sm:mt-3 md:mt-4 font-medium">Click to learn more →</p>
                   </div>
                   
                   {/* Back of Card */}
-                  <div className="flip-card-back p-4 sm:p-6">
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 mb-3 sm:mb-4 mx-auto">{service.backIcon}</div>
-                    <h3 className="text-lg sm:text-xl lg:text-2xl">{service.title}</h3>
-                    <p className="text-sm sm:text-base">Opening details...</p>
+                  <div className="flip-card-back p-4 sm:p-5 md:p-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 mb-2 sm:mb-3 md:mb-4 mx-auto">{service.backIcon}</div>
+                    <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl">{service.title}</h3>
+                    <p className="text-xs sm:text-sm md:text-base">Opening details...</p>
                   </div>
                 </div>
               </div>
@@ -1165,6 +1390,7 @@ const ServicesSection = ({ setActiveSection }) => {
         </div>
       </div>
     </section>
+    </>
   );
 };
 
@@ -1173,29 +1399,38 @@ const ServicesSection = ({ setActiveSection }) => {
  */
 const AboutUsSection = ({ setActiveSection }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
+    
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   const values = [
     {
-      icon: <Target className="w-12 h-12 text-red-600" />,
+      icon: <img src="/leader.png" alt="Expert Guidance" className="w-12 h-12" />,
       title: 'Expert Guidance',
       description: '20+ years of combined experience in immigration and visa services'
     },
     {
-      icon: <TrendingUp className="w-12 h-12 text-green-600" />,
+      icon: <img src="/customer-success.png" alt="High Success Rate" className="w-12 h-12" />,
       title: 'High Success Rate',
       description: '98% visa approval rate with personalized attention to each case'
     },
     {
-      icon: <HeartHandshake className="w-12 h-12 text-red-600" />,
+      icon: <img src="/relationship.png" alt="Trusted Partner" className="w-12 h-12" />,
       title: 'Trusted Partner',
       description: '500+ successful visa applications and satisfied clients worldwide'
     },
     {
-      icon: <Globe className="w-12 h-12 text-green-600" />,
+      icon: <img src="/international-trade.png" alt="Global Reach" className="w-12 h-12" />,
       title: 'Global Reach',
       description: 'Expertise in multiple countries and visa categories'
     }
@@ -1203,18 +1438,36 @@ const AboutUsSection = ({ setActiveSection }) => {
 
   return (
     <>
+      {/* Background Image - Extends from top of page behind header */}
+      <div 
+        className="fixed top-0 left-0 right-0 bottom-0 z-0"
+        style={{
+          backgroundImage: 'url(/vission-mission-bg.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: isMobile ? 'scroll' : 'fixed',
+          filter: 'blur(1px)',
+        }}
+      >
+        {/* Elegant Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-black/70"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/15 to-amber-900/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+      </div>
+      
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-red-100 to-green-100 py-20 overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-green-500 animate-gradient"></div>
-        </div>
+      <section className="relative min-h-[50vh] sm:min-h-[60vh] flex items-center justify-center overflow-hidden z-10">
+
+        {/* Floating Decorative Elements */}
+        <div className="absolute top-10 sm:top-20 right-10 sm:right-20 w-48 sm:w-72 h-48 sm:h-72 bg-blue-500/10 rounded-full mix-blend-screen filter blur-3xl animate-blob z-10"></div>
+        <div className="absolute bottom-10 sm:bottom-20 left-10 sm:left-20 w-64 sm:w-96 h-64 sm:h-96 bg-purple-500/10 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000 z-10"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className={`text-center ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-7xl font-bold text-gray-800 mb-4 sm:mb-6 px-2 sm:px-0">
-              About <span className="text-red-600">Easy Go</span> <span className="text-green-600">Overseas</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold text-white mb-3 sm:mb-4 md:mb-6 px-2 sm:px-0 drop-shadow-2xl">
+              About <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-amber-400 bg-clip-text text-transparent">Easy Go</span> <span className="bg-gradient-to-r from-amber-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">Overseas</span>
             </h1>
-            <p className="text-base sm:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-3xl mx-auto px-2 sm:px-0">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white/95 max-w-3xl mx-auto px-2 sm:px-0 drop-shadow-lg">
               Your trusted partner in making global opportunities accessible
             </p>
           </div>
@@ -1222,26 +1475,35 @@ const AboutUsSection = ({ setActiveSection }) => {
       </section>
 
       {/* Mission & Vision Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden z-10">
+
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-center">
+            {/* Mission Card with Glassmorphism */}
             <div className={`${isVisible ? 'animate-slide-in-left' : 'opacity-0'}`}>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 sm:mb-6">Our Mission</h2>
-              <p className="text-base sm:text-lg text-gray-600 mb-3 sm:mb-4">
-                At Easy Go Overseas, we are dedicated to helping individuals and families achieve their dreams of living, working, and studying abroad. Our mission is to provide expert guidance, personalized service, and unwavering support throughout your immigration journey.
-              </p>
-              <p className="text-base sm:text-lg text-gray-600">
-                We believe that everyone deserves access to global opportunities, and we're here to make that process as smooth and successful as possible.
-              </p>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10 border border-white/20 shadow-2xl">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 md:mb-6 drop-shadow-lg">Our Mission</h2>
+                <p className="text-sm sm:text-base md:text-lg text-white/95 mb-2 sm:mb-3 md:mb-4 leading-relaxed drop-shadow-md">
+                  At Easy Go Overseas, we are dedicated to helping individuals and families achieve their dreams of living, working, and studying abroad. Our mission is to provide expert guidance, personalized service, and unwavering support throughout your immigration journey.
+                </p>
+                <p className="text-sm sm:text-base md:text-lg text-white/95 leading-relaxed drop-shadow-md">
+                  We believe that everyone deserves access to global opportunities, and we're here to make that process as smooth and successful as possible.
+                </p>
+              </div>
             </div>
+            
+            {/* Vision Card with Glassmorphism */}
             <div className={`${isVisible ? 'animate-slide-in-right' : 'opacity-0'}`}>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4 sm:mb-6">Our Vision</h2>
-              <p className="text-base sm:text-lg text-gray-600 mb-3 sm:mb-4">
-                To become the most trusted and reliable immigration consultancy, recognized for our integrity, expertise, and commitment to client success. We envision a world where borders don't limit dreams, and everyone can access the opportunities they deserve.
-              </p>
-              <p className="text-base sm:text-lg text-gray-600">
-                Through continuous learning and adaptation, we stay at the forefront of immigration policies and procedures to serve our clients better.
-              </p>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 sm:p-6 md:p-8 lg:p-10 border border-white/20 shadow-2xl">
+                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-3 sm:mb-4 md:mb-6 drop-shadow-lg">Our Vision</h2>
+                <p className="text-sm sm:text-base md:text-lg text-white/95 mb-2 sm:mb-3 md:mb-4 leading-relaxed drop-shadow-md">
+                  To become the most trusted and reliable immigration consultancy, recognized for our integrity, expertise, and commitment to client success. We envision a world where borders don't limit dreams, and everyone can access the opportunities they deserve.
+                </p>
+                <p className="text-sm sm:text-base md:text-lg text-white/95 leading-relaxed drop-shadow-md">
+                  Through continuous learning and adaptation, we stay at the forefront of immigration policies and procedures to serve our clients better.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -1251,25 +1513,25 @@ const AboutUsSection = ({ setActiveSection }) => {
       <StatisticsSection />
 
       {/* Why Choose Us Section */}
-      <section className="py-20 bg-gradient-to-r from-gray-50 to-gray-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className={`text-center mb-12 sm:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Why Choose Us?</h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-600 px-2 sm:px-0">What sets us apart in the immigration industry</p>
+      <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden bg-white z-10">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`text-center mb-8 sm:mb-12 md:mb-16 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+            <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0">Why Choose Us?</h2>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 px-2 sm:px-0">What sets us apart in the immigration industry</p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {values.map((value, index) => (
               <div
                 key={index}
-                className={`bg-white p-4 sm:p-6 lg:p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 sm:hover:-translate-y-2 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
+                className={`bg-white p-5 sm:p-6 md:p-8 rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`}
                 style={{ animationDelay: `${0.3 + index * 0.1}s` }}
               >
                 <div className="flex justify-center mb-3 sm:mb-4 transform transition-transform duration-300 hover:scale-110">
                   {value.icon}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 sm:mb-3 text-center">{value.title}</h3>
-                <p className="text-sm sm:text-base text-gray-600 text-center">{value.description}</p>
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-2 sm:mb-3 text-center">{value.title}</h3>
+                <p className="text-xs sm:text-sm md:text-base text-gray-700 text-center leading-relaxed">{value.description}</p>
               </div>
             ))}
           </div>
@@ -1277,11 +1539,11 @@ const AboutUsSection = ({ setActiveSection }) => {
       </section>
 
       {/* Our Story Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden bg-gray-50 z-10">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className={`text-center ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-6 sm:mb-8 px-2 sm:px-0">Our Story</h2>
-            <div className="space-y-4 sm:space-y-6 text-base sm:text-lg text-gray-600 text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 md:mb-8 px-2 sm:px-0">Our Story</h2>
+            <div className="space-y-4 sm:space-y-5 md:space-y-6 text-sm sm:text-base md:text-lg text-gray-700 text-left leading-relaxed">
               <p>
                 Easy Go Overseas was founded with a simple yet powerful vision: to make international opportunities accessible to everyone. With over 20 years of combined experience in immigration consulting, our team has helped hundreds of individuals and families navigate the complex world of visas, immigration, and overseas opportunities.
               </p>
@@ -1292,10 +1554,10 @@ const AboutUsSection = ({ setActiveSection }) => {
                 Today, we're proud to have facilitated over 500 successful visa applications with a 98% approval rate. But more than the numbers, we're proud of the lives we've helped transform and the dreams we've helped realize. Your success is our success, and we're committed to being with you every step of the way.
               </p>
             </div>
-            <div className="mt-8 sm:mt-12">
+            <div className="mt-8 sm:mt-10 md:mt-12">
               <button
                 onClick={() => setActiveSection('contact-us')}
-                className="bg-red-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-all-smooth hover-scale shadow-lg hover:shadow-xl active:scale-95"
+                className="bg-red-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-red-700 transition-colors duration-200 shadow-md hover:shadow-lg"
               >
                 Get Started Today
               </button>
@@ -1408,14 +1670,21 @@ const ContactForm = () => {
   }, []);
 
   return (
-    <section className="py-20 bg-gradient-to-r from-red-100 to-green-100">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className={`text-center mb-8 sm:mb-12 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-3 sm:mb-4 px-2 sm:px-0">Book Your Consultation</h2>
-          <p className="text-base sm:text-lg lg:text-xl text-gray-600 px-2 sm:px-0">Take the first step towards your overseas journey</p>
+    <section className="relative py-12 sm:py-16 md:py-20 overflow-hidden">
+      {/* Elegant gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/80 via-white to-purple-50/80"></div>
+      {/* Decorative circles - matching color scheme */}
+      <div className="absolute top-10 right-10 w-64 sm:w-96 h-64 sm:h-96 bg-blue-200/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+      <div className="absolute bottom-10 left-10 w-64 sm:w-96 h-64 sm:h-96 bg-purple-200/30 rounded-full mix-blend-multiply filter blur-3xl opacity-40"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-56 sm:w-80 h-56 sm:h-80 bg-amber-200/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`text-center mb-6 sm:mb-8 md:mb-12 ${isVisible ? 'animate-slide-up' : 'opacity-0'}`}>
+          <h2 className="text-2xl sm:text-3xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 sm:mb-3 md:mb-4 px-2 sm:px-0">Book Your Consultation</h2>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 px-2 sm:px-0">Take the first step towards your overseas journey</p>
         </div>
         
-        <div className={`bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
+        <div className={`bg-white rounded-lg shadow-lg p-4 sm:p-5 md:p-6 lg:p-8 ${isVisible ? 'animate-scale-in' : 'opacity-0'}`} style={{ animationDelay: '0.2s' }}>
           {submitMessage && (
             <div className={`mb-6 p-4 rounded-lg animate-bounce-in ${
               submitMessage.includes('Thank you') 
@@ -1426,7 +1695,7 @@ const ContactForm = () => {
             </div>
           )}
           
-          <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Name Field */}
             <div>
               <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
@@ -1560,8 +1829,8 @@ const ContactForm = () => {
               {errors.preferredDate && <p className="mt-1 text-sm text-red-600">{errors.preferredDate}</p>}
             </div>
             
-            {/* Eligibility Section */}
-            <div className="border-t pt-4 sm:pt-6 mt-4 sm:mt-6">
+            {/* Eligibility Section - Full Width */}
+            <div className="border-t pt-4 sm:pt-6 mt-4 sm:mt-6 md:col-span-2">
               <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">Fill other details</h3>
               
               {/* English Level */}
@@ -1569,7 +1838,7 @@ const ContactForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   What is your english level<span className="text-red-600">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {['Excellent (8+ Band)', 'Good (7 Band)', 'Average (6 Band)', 'Poor (5 Band)', 'Very Poor (4 Band)'].map((level) => (
                     <label key={level} className={`flex items-center p-2 sm:p-2.5 border rounded-lg cursor-pointer transition-all-smooth touch-manipulation ${
                       formData.englishLevel === level 
@@ -1598,7 +1867,7 @@ const ContactForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Age<span className="text-red-600">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {['Under 18 years', '18-35 years', '36-40 years', '40 years+'].map((ageGroup) => (
                     <label key={ageGroup} className={`flex items-center p-2 sm:p-2.5 border rounded-lg cursor-pointer transition-all-smooth touch-manipulation ${
                       formData.age === ageGroup 
@@ -1627,7 +1896,7 @@ const ContactForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Education<span className="text-red-600">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {['PHD', 'Masters', 'Post Graduation', 'Two or more Certificates', 'Graduation', 'Diploma 3 years'].map((edu) => (
                     <label key={edu} className={`flex items-center p-2 sm:p-2.5 border rounded-lg cursor-pointer transition-all-smooth touch-manipulation ${
                       formData.education === edu 
@@ -1656,7 +1925,7 @@ const ContactForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Experience<span className="text-red-600">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                   {['1 year', '2-3 years', '4-5 years', '6 or more years'].map((exp) => (
                     <label key={exp} className={`flex items-center p-2 sm:p-2.5 border rounded-lg cursor-pointer transition-all-smooth touch-manipulation ${
                       formData.experience === exp 
@@ -1685,7 +1954,7 @@ const ContactForm = () => {
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Visa Type<span className="text-red-600">*</span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {['Express Entry', 'PNP', 'Business Investor Program', 'Work Permit', 'Visitor Visa', 'Tourist', 'Others'].map((visa) => (
                     <label key={visa} className={`flex items-center p-2 sm:p-2.5 border rounded-lg cursor-pointer transition-all-smooth touch-manipulation ${
                       formData.visaType === visa 
@@ -1710,8 +1979,8 @@ const ContactForm = () => {
               </div>
             </div>
             
-            {/* Message Field */}
-            <div>
+            {/* Message Field - Full Width */}
+            <div className="md:col-span-2">
               <label htmlFor="message" className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                 Additional Message (Optional)
               </label>
@@ -1729,8 +1998,8 @@ const ContactForm = () => {
               {errors.message && <p className="mt-1 text-sm text-red-600">{errors.message}</p>}
             </div>
             
-            {/* Submit Button */}
-            <div className="text-center">
+            {/* Submit Button - Full Width */}
+            <div className="text-center md:col-span-2">
               <button
                 type="button"
                 onClick={handleSubmit}
@@ -1756,61 +2025,71 @@ const ContactForm = () => {
  */
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white py-8 sm:py-10 md:py-12 overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute top-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-blue-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      <div className="absolute bottom-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-purple-900/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {/* Company Info */}
           <div>
-            <div className="flex items-center space-x-3 mb-4">  
+            <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">  
             <img
               src="/Logo.jpg"
               alt="Logo"
-              className="h-12 w-auto object-contain"
-              style={{ maxHeight: '48px' }}
+              className="h-10 sm:h-12 w-auto object-contain"
+              style={{ maxHeight: '48px', objectFit: 'contain' }}
             />
               {/* <div className="w-10 h-10 bg-gradient-to-r from-red-500 to-green-500 rounded-full flex items-center justify-center">
                 <Globe className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold">Easy Go Overseas</h3> */}
             </div>
-            <p className="text-gray-300 mb-4">
+            <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">
               Your trusted partner for overseas, immigration, and career opportunities.
             </p>
           </div>
           
           {/* Contact Information */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Contact Information</h4>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <Phone className="w-5 h-5 text-red-500" />
-                <span className="text-gray-300">+91 63595 02902</span>
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Contact Information</h4>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <img src="/phone-call.png" alt="Phone" className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-gray-300 break-all">+91 63595 02902</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <Mail className="w-5 h-5 text-green-500" />
-                <span className="text-gray-300">egoc99@gmail.com</span>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <img src="/communication.png" alt="Email" className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-sm sm:text-base text-gray-300 break-all">egoc99@gmail.com</span>
               </div>
             </div>
           </div>
           
           {/* Address */}
           <div>
-            <h4 className="text-lg font-semibold mb-4">Office Address</h4>
-            <div className="flex items-start space-x-3">
-              <MapPin className="w-5 h-5 text-red-500 mt-1" />
-              <div className="text-gray-300">
-                <p>121 Narayan Empire,</p>
+            <h4 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Office Address</h4>
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=120+Narayan+Empire+Anand-Vidhyanagar+Road+Anand+Gujarat+388120+India"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-start space-x-2 sm:space-x-3 hover:text-yellow-300 transition-colors duration-200 cursor-pointer group"
+            >
+              <img src="/map.png" alt="Location" className="w-4 h-4 sm:w-5 sm:h-5 mt-1 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
+              <div className="text-sm sm:text-base text-gray-300 group-hover:text-yellow-300 transition-colors duration-200">
+                <p>120,Narayan Empire,</p>
                 <p>Anand-Vidhyanagar Road,</p>
                 <p>Anand, Gujarat 388120,</p>
                 <p>India</p>
+                <p className="text-xs sm:text-sm text-yellow-400 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">Click to open in Google Maps →</p>
               </div>
-            </div>
+            </a>
           </div>
         </div>
         
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center">
-          <p className="text-gray-400">
+        <div className="border-t border-gray-700 mt-6 sm:mt-8 pt-6 sm:pt-8 text-center">
+          <p className="text-xs sm:text-sm text-gray-400 px-2">
             © 2024 Easy Go Overseas. All rights reserved. | Making overseas dreams come true.
           </p>
         </div>
