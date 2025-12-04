@@ -1,36 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/Logo.jpg" sizes="192x192" />
-    <link rel="shortcut icon" type="image/jpeg" href="%PUBLIC_URL%/Logo.jpg" />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/Logo.jpg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Easy Go Overseas - Your Gateway to Global Opportunities" />
-    <title>Easy Go Overseas - Professional Advisory Services</title>
-    
-    <!-- Tailwind CSS CDN for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Configure Tailwind -->
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              primary: {
-                red: '#dc2626',
-                green: '#16a34a'
-              }
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/Logo.jpg" sizes="192x192" />
+  <link rel="shortcut icon" type="image/jpeg" href="%PUBLIC_URL%/Logo.jpg" />
+  <link rel="apple-touch-icon" href="%PUBLIC_URL%/Logo.jpg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Easy Go Overseas - Your Gateway to Global Opportunities" />
+  <title>Easy Go Overseas - Professional Advisory Services</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Configure Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              red: '#dc2626',
+              green: '#16a34a',
+              dark: '#111827',
+              light: '#f3f4f6'
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
           }
         }
       }
-    </script>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
+    }
+  </script>
+</head>
+
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
+
 </html>
